@@ -1,0 +1,24 @@
+/* Styles for the eye icon */
+button svg {
+  height: 1.25rem;
+  width: 1.25rem;
+  transition: fill 0.2s;
+}
+
+/* Styles for the eye icon in the "hide" state */
+button .hide #eye {
+  display: none;
+}
+
+button .hide #eye-off {
+  display: block;
+}
+
+/* Styles for the eye icon in the "show" state */
+button .show #eye {
+  display: block;
+}
+
+button .show #eye-off {
+  display: none;
+}
