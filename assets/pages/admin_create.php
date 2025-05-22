@@ -1,5 +1,5 @@
 <?php 
-$title = 'Create Admin - Foodcourt';
+$title = 'Create Admin - Delivery';
 include_once('head.php');?>
 
 <div class="h-full flex flex-row bg-white overflow-x-auto">

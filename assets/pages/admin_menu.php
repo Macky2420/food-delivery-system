@@ -1,6 +1,6 @@
 <?php
 session_start();
-$title = "Menu Admin - Foodcourt";
+$title = "Menu Admin - Delivery";
 include_once('../php/connection.php');
 include_once('head.php');
 include_once('../php/message.php');?> 

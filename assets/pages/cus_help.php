@@ -1,6 +1,6 @@
 <?php
 session_start(); 
-$title = 'Help - Foodcourt';
+$title = 'Help - Delivery';
 include_once('../php/connection.php');
 include_once('head.php');
 include_once('../php/message.php');?> <div class="h-full flex flex-row bg-white overflow-x-auto"> 

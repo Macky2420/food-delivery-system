@@ -1,6 +1,6 @@
 <?php 
 session_start();
-$title = "Home Admin- Foodcourt";
+$title = "Home Admin- Delivery";
 include_once('../php/connection.php');
 include_once('head.php');
 require_once('../php/message.php');?> 

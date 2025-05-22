@@ -1,7 +1,7 @@
 <?php 
 session_start();
 include_once('../php/connection.php');
-$title = 'Create - Foodcourt';
+$title = 'Create - Delivery';
 $token = $_GET['token'];
 include_once('head.php');?> 
 <div class="h-full flex flex-row bg-white overflow-x-auto"> 

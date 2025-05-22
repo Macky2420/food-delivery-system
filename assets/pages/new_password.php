@@ -1,6 +1,6 @@
 <?php 
 session_start();
-$title = 'Forgot - Foodcourt';
+$title = 'Forgot - Delivery';
  require_once("head.php");
  require_once('../php/message.php');
  $_SESSION['token'] = bin2hex(random_bytes(32));?>

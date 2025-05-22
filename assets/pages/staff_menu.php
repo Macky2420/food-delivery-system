@@ -1,6 +1,6 @@
 <?php
 session_start();
-$title = "Menu - Foodcourt";
+$title = "Menu - Delivery";
 include_once('../php/connection.php');
 include_once('head.php');
 include_once('../php/message.php');?> <div class="h-full flex flex-row bg-white overflow-x-auto"> <?php include_once('cus_nav.php')?> <div class="ml-16 w-full min-h-screen overflow-hidden text-green-800">

@@ -1,6 +1,6 @@
 <?php 
 session_start();
-$title = "Edit Admin - Foodcourt";
+$title = "Edit Admin - Delivery";
 include_once('head.php');
 include_once('../php/message.php');?> 
 <div class="h-full flex flex-row bg-white overflow-x-auto"> 
