@@ -7,222 +7,98 @@ require_once 'send-code.php';
 
 /* GENERAL WHICH MEANS ALL USERS*/
 
-// For signup form
 if (isset($_POST['signup'], $_SESSION['token'])) {
-    
-    $date = date('Y-m-d');
-    $time = date('h:i:s');
-    $role = $_POST['role'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    
-    $query = "SELECT role_id FROM roles WHERE name = ?";
-    $stmt = $conn->prepare($query);
+    $date     = date('Y-m-d');
+    $time     = date('H:i:s');
+    $role     = $_POST['role'];
+    $email    = trim($_POST['email']);
+    $rawPwd   = $_POST['password'];
+    $password = password_hash($rawPwd, PASSWORD_DEFAULT);
+
+    // 1) Lookup the role_id
+    $stmt = $conn->prepare("SELECT role_id FROM roles WHERE name = ?");
     $stmt->bind_param('s', $role);
     $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
-        // handle error
-        $error = "Please select user.";
-        $_SESSION['roleError'] = $error;
-        $_SESSION['error'] = $error;
-        header("Location: ../pages/signup.php?error=emptyRole");
-        exit();
+    $res = $stmt->get_result();
+    if ($res->num_rows === 0) {
+        $_SESSION['error'] = "Please select a valid role.";
+        header("Location: ../pages/signup.php?error=invalidRole");
+        exit;
     }
-    
-    $row = $result->fetch_assoc();
-    $role_id = $row['role_id'];
+    $role_id = $res->fetch_assoc()['role_id'];
+    $stmt->close();
 
-    if ($role == 'staff') {
-        $stationName = $_POST['stationName'];
-
-        // Validate station name input
-        if (!validateStaffInput($stationName, $conn)) {
-
-            $_SESSION['error'] = "Station name should not be empty or invalid";
+    // 2) Validate inputs
+    if ($role === 'staff') {
+        $name = trim($_POST['stationName']);
+        if (!validateStaffInput($name, $conn)) {
+            $_SESSION['error'] = "Station name is invalid.";
             header("Location: ../pages/signup.php?error=invalidStationName");
-            exit();
+            exit;
         }
-
-        // Validate email input
-        if (!validateEmail($email, $conn)) {
-            $_SESSION['error'] = "Email should not be empty or invalid";
-            header("Location: ../pages/signup.php?error=invalidEmail");
-            exit();
-        }
-
-        // Validate password input
-        if (!validatePassword($password)) {
-            $_SESSION['error'] = "Password should not be empty or invalid";
-            header("Location: ../pages/signup.php?error=emptyPasswordorInvalid");
-            exit();
-        }
-          
-
-        $query = "INSERT INTO users (name, email, password, role_id, date_updated, time_updated) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param('ssssss', $stationName, $email, $password, $role_id, $date, $time);
-
-        $stmt->execute();
-        $stmt->close();
-
-        $_SESSION['success'] = "Signup successful";
-        header("Location: ../pages/verify.php");
-        exit();
-
-    } elseif ($role == 'customer') {
-        $userName = $_POST['userName'];
-
-        // Validate user name input
-        if (!validateCustomerInput($userName, $conn)) {
-            $_SESSION['error'] = "Username should not be empty or invalid";
+    } else {  // customer
+        $name = trim($_POST['userName']);
+        if (!validateCustomerInput($name, $conn)) {
+            $_SESSION['error'] = "Username is invalid.";
             header("Location: ../pages/signup.php?error=invalidUserName");
-            exit();
+            exit;
         }
-
-        // Validate email input
-        if (!validateEmail($email, $conn)) {
-            $_SESSION['error'] = "Email should not be empty or invalid";
-            header("Location: ../pages/signup.php?error=invalidEmail");
-            exit();
-        }
-
-        // Validate password input
-        if (!validatePassword($password)) {
-            $_SESSION['error'] = "Password should not be empty or invalid";
-            header("Location: ../pages/signup.php?error=emptyPasswordorInvalid");
-            exit();
-        }
-          
-
-        $query = "INSERT INTO users (name, email, password, role_id, date_updated, time_updated) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param('ssssss', $userName, $email, $password, $role_id, $date, $time);
-
-        $stmt->execute();
-        $stmt->close();
-
-        $_SESSION['success'] = "Signup successful";
-        header("Location: ../pages/verify.php");
-        exit();
-
-        
-    } else {
-        header("Location: ../pages/signup.php?error=0");
-        exit();
     }
-   
-    unset($_POST['signup']);
+    if (!validateEmail($email, $conn)) {
+        $_SESSION['error'] = "Email is invalid.";
+        header("Location: ../pages/signup.php?error=invalidEmail");
+        exit;
+    }
+    if (empty($rawPwd) || !validatePassword($rawPwd)) {
+        $_SESSION['error'] = "Password is invalid.";
+        header("Location: ../pages/signup.php?error=invalidPassword");
+        exit;
+    }
 
-}
-
-// For verify form
-if (isset($_POST['verify'], $_SESSION['token'])) {
-
-    // Get the email from the form data
-    $email = $_POST['email'];
-
-    // Check if the email already exists in the database
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
+    // 3) Insert the new user
+    $stmt = $conn->prepare(
+      "INSERT INTO users (name, email, password, role_id, date_updated, time_updated)
+       VALUES (?, ?, ?, ?, ?, ?)"
+    );
+    $stmt->bind_param('ssssss', $name, $email, $password, $role_id, $date, $time);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt->close();
 
-    // If the email exists, send the verification code
-    if ($result->num_rows > 0) {
-        // Generate a 6-digit code
-        $code = rand(111111, 999999);
+    // 4) Generate a session token and auto‐verify
+    $token = bin2hex(random_bytes(16));
+    $_SESSION['token'] = $token;
 
-        // Send the verification code via email using the send_email function
-            sendCode($email,$code);
+    $stmt = $conn->prepare(
+      "UPDATE users
+         SET verified = 1,
+             status   = 1,
+             token    = ?
+       WHERE email = ?"
+    );
+    $stmt->bind_param('ss', $token, $email);
+    $stmt->execute();
+    $stmt->close();
 
-                // If the email was sent successfully, store the verification code in the session
-
-                $_SESSION['verification_code'] = $code;
-                $_SESSION['verification_email'] = $email;
-
-                // Redirect to the verification page
-                $_SESSION['success'] = 'Verify successful.';
-                header('Location: ../pages/code.php');
-                exit;
-                
-            
-    
-    }  else {
-        // If the email doesn't exist in the database, display an error message
-        $_SESSION['error'] = "This email is not registered. Please enter a registered email.";
-        $_SESSION['sendError'] = 'This email is not registered. Please enter a registered email.';
-        header('Location: ../pages/verify.php?error=emailError');
-        exit;
+    // 5) Redirect straight to the appropriate home page
+    switch ($role) {
+        case 'admin':
+            $home = 'admin_home.php';
+            break;
+        case 'staff':
+            $home = 'staff_home.php';
+            break;
+        case 'customer':
+            $home = 'cus_home.php';
+            break;
+        default:
+            $_SESSION['error'] = "Unknown role.";
+            header("Location: ../pages/signup.php?error=unknownRole");
+            exit;
     }
-    unset($_POST['verify.php']);   
 
-}
-
-// For send form
-if (isset($_POST['code'], $_SESSION['token'])) { 
-    $user_input = $_POST['inputCode']; // Get the user input from the form
-    $token = $_SESSION['token'];
-    $sent_code = $_SESSION['verification_code']; // Get the verification code from the session
-    $anEmail = $_SESSION['verification_email'];
-    
-    if($user_input == $sent_code) { // Compare the user input to the stored code
-        // Update the "verified" and "token" columns in the database
-        $stmt = $conn->prepare("UPDATE users SET verified = 1, status = 1, token = ? WHERE email = ?");
-        $stmt->bind_param("ss", $token, $anEmail);
-        $stmt->execute();
-
-        // Retrieve the user's credentials from the database
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->bind_param("s", $anEmail);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-
-            if ($row) { // If the user's credentials are valid
-                // Retrieve the user's role from the database
-                $role_id = $row['role_id'];
-                $query = "SELECT name FROM roles WHERE role_id = ?";
-                $stmt1 = $conn->prepare($query);
-                $stmt1->bind_param("s", $role_id);
-                $stmt1->execute();
-                $result1 = $stmt1->get_result();
-                $row = $result1->fetch_assoc();
-                $role_name = $row['name'];
-
-                // Redirect the user based on their role
-                if ($role_name == 'admin') {
-                    $_SESSION['success'] = 'Registered successful.';
-                    header('Location: ../pages/admin_home.php?token=' . urlencode($token));
-                    exit;
-                } elseif ($role_name == 'staff') {
-                    $_SESSION['success'] = 'Registered successful.';
-                    header('Location: ../pages/staff_home.php?token=' . urlencode($token));
-                    exit;
-                } elseif ($role_name == 'customer') {
-                    $_SESSION['success'] = 'Registered successful.';
-                    header('Location: ../pages/cus_home.php?token=' . urlencode($token));
-                    exit;
-                } else {
-                    $_SESSION["codeError"] = "Invalid role.";
-                    header('Location: ../pages/code.php');
-                    exit;
-                }
-            } else { // If the user's credentials are invalid
-                $_SESSION['error'] = "Invalid email or password.";
-                $_SESSION["codeError"] = "Invalid email or password.";
-                header('Location: ../pages/code.php');
-                exit;
-            }
-        
-    } else {
-        $_SESSION['error'] = "Invalid code.";
-        $_SESSION["codeError"] = "Invalid code."; // If the codes don't match, show an error message
-        header('Location: ../pages/code.php');
-        exit;
-    }
-    unset($_POST['code']);
+    $_SESSION['success'] = "Registration complete—logged in as “{$role}.”";
+    header("Location: ../pages/{$home}?token=" . urlencode($token));
+    exit;
 }
 
 // For forgot password

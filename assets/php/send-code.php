@@ -17,13 +17,13 @@ global $mail;
         $mail->isSMTP();                                            //Send using SMTP
         $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = 'inyou4529@gmail.com';                     //SMTP username
-        $mail->Password   = 'wifkfrucgptajbti';                               //SMTP password
+        $mail->Username   = 'laconmarkie@gmail.com';                     //SMTP username
+        $mail->Password   = 'kjedujcnlfkqaqxz';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
     
         //Recipients
-        $mail->setFrom('inyou4529@gmail.com', 'NWSSU Foodcourt Reservation');    //Add a recipient
+        $mail->setFrom('laconmarkie@gmail.com', 'Food Delivery System');    //Add a recipient
         $mail->addAddress($email);               //Name is optional
     
         //Content
@@ -85,13 +85,13 @@ global $mail;
                                     <img src="https://i.ibb.co/YBRmfdZ/icon-logo.png" alt="Nwssu Foodcourt Reservation System">
                                     <h1>Nwssu Food Reservation System</h1>
                                     <p>Hi Users,</p>
-                                    <p>Welcome to Nwssu Food Reservation System!</p>
+                                    <p>Welcome to Food Delivery System!</p>
                                     <p>Thank you for signing up for our food reservation system.</p>
                                     <p style="text-align: center; color: #666;">Please use the following code to verify your email address:</p>
                                     <div class="code">' . $code . '</div>
                                     <p style="text-align: center; color: #666;">If you did not request this verification code, please ignore this email.</p>
                                     <p>Regards,</p>
-                                    <p>The Nwssu Food Reservation System Team</p>
+                                    <p>Food Delivery System Team</p>
                                 </div>
                             </body>
                         </html>';
@@ -111,13 +111,13 @@ function forgotCode($for_email,$for_code){
             $mail->isSMTP();                                            //Send using SMTP
             $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
             $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-            $mail->Username   = 'inyou4529@gmail.com';                     //SMTP username
-            $mail->Password   = 'wifkfrucgptajbti';                               //SMTP password
+            $mail->Username   = 'laconmarkie@gmail.com';                     //SMTP username
+            $mail->Password   = 'kjedujcnlfkqaqxz';                               //SMTP password
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
             $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
         
             //Recipients
-            $mail->setFrom('inyou4529@gmail.com', 'NWSSU Foodcourt Reservation');    //Add a recipient
+            $mail->setFrom('laconmarkie@gmail.com', 'Food Delivery System');    //Add a recipient
             $mail->addAddress($for_email);               //Name is optional
         
             //Content
@@ -179,12 +179,12 @@ function forgotCode($for_email,$for_code){
                                       <img src="https://i.ibb.co/YBRmfdZ/icon-logo.png" alt="Nwssu Foodcourt Reservation System">
                                       <h1>Nwssu Food Reservation System</h1>
                                       <p>Hi User,</p>
-                                      <p>Welcome to the Nwssu Food Reservation System!</p>
+                                      <p>Welcome to the Food Delivery System System!</p>
                                       <p>We have received a request to reset your password. Please use the following code to reset your password:</p>
                                       <div class="code">' . $for_code . '</div>
                                       <p>If you did not request a password reset, you can safely ignore this email.</p>
                                       <p>Regards,</p>
-                                      <p>The Nwssu Food Reservation System Team</p>
+                                      <p>The Food Delivery System System Team</p>
                                   </div>
                             
                                 </body>
